@@ -15,74 +15,50 @@ import 'multer';
 export class GradesController {
   constructor(private readonly gradesService: GradesService, private readonly queueProducer: ResultsQueueProducer) { }
 
-  @Public()
-  @Get('view-cached-results')
-  async viewCachedResults(@Query() query: gradeReultsRequest) {
-    try {
-      const result = await this.gradesService.viewCachedResults(query);
 
+
+  // Endpoint to check job status
+  @Public()
+  @Get('queue/status/:jobId')
+  async getJobStatus(@Param('jobId') jobId: string) {
+
+    // console.log(`Worker ${process.pid} handled request`);
+    const job = await this.queueProducer.getJob(jobId);
+
+    if (!job) {
       return {
-        success: true,
-        message: 'Results retrieved successfully',
-        data: result
-      };
-    } catch (error) {
-      console.error('View results error:', error);
-
-      if (error instanceof BadRequestException) {
-        throw error;
-      }
-
-      throw new InternalServerErrorException({
         success: false,
-        message: 'Failed to retrieve results',
-      });
+        message: 'Job not found',
+        jobId,
+        status: 'not_found',
+      };
     }
+
+    const state = await job.getState();
+    const progress = job.progress();
+    const result = job.returnvalue;
+
+    return {
+      success: true,
+      jobId,
+      status: state,
+      progress,
+      result: state === 'completed' ? result : undefined,
+      message: state === 'completed'
+        ? 'Results ready'
+        : state === 'failed'
+          ? 'Processing failed'
+          : 'Processing in progress',
+    };
   }
 
-  // New endpoint with queue support (non-blocking)
-  // grades/grades.controller.ts
   @Public()
-  @Get('view-cached-results-que')
-  async viewcachedResultsWithQueue(
-    @Query() query: gradeReultsRequest,
-    @Res() res: express.Response,
-  ) {
+  @Post('pre-cache-results')
+  async preCacheResults() {
     try {
-      const { jobId, queued, position } = await this.queueProducer.addToQueue(
-        query.student_number,
-        query.date_of_birth,
-      );
-
-      console.log(process.pid);
-      res.status(202).json({
-        success: true,
-        message: 'Request queued for processing',
-        data: {
-          jobId,
-          queued,
-          position,
-          statusUrl: `/grades/queue/status/${jobId}`,
-          estimatedWaitTime: position * 0.5,
-        },
-      });
+      await this.gradesService.preLoadResultsFromDbToCache()
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      if (errorMessage === 'Queue full - try again later') {
-        res.status(503).json({
-          success: false,
-          message: 'Server is busy. Please try again later.',
-          queueFull: true,
-        });
-      } else {
-        console.error('Queue error:', error);
-        res.status(500).json({
-          success: false,
-          message: 'Failed to queue request',
-        });
-      }
+      console.error(error)
     }
   }
-
-
 }

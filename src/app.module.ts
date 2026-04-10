@@ -60,6 +60,11 @@ import { QueueModule } from './queue/queue.module';
       buckets: [0.1, 0.3, 0.5, 1, 2, 5],
     }),
     MetricsInterceptor,
-    ],
+    // {
+    //   provide: APP_INTERCEPTOR,
+    //   useClass: MetricsInterceptor,
+    // },
+
+  ],
 })
 export class AppModule { }

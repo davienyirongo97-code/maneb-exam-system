@@ -11,6 +11,7 @@ import { GradesModule } from '../grades/grades.module';
             name: 'results-queue',
             limiter: {
                 max: 10000,        // Max 300 jobs per
+
                 duration: 1000,  // 1 second
             },
             defaultJobOptions: {

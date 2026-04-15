@@ -76,8 +76,6 @@ export class GradesController {
     }
   }
 
-  // New endpoint with queue support (non-blocking)
-  // grades/grades.controller.ts
   @Public()
   @Get('view-cached-results-que')
   async viewcachedResultsWithQueue(
@@ -120,7 +118,6 @@ export class GradesController {
     }
   }
 
-  // Endpoint to check job status
   @Public()
   @Get('queue/status/:jobId')
   async getJobStatus(@Param('jobId') jobId: string) {
@@ -155,8 +152,7 @@ export class GradesController {
     };
   }
 
-  // Optional: Keep original endpoint for direct processing (blocking)
-  @Public()
+@Public()
   @Get('view-uncached-results-direct')
   async viewUncachedResultsDirect(@Query() query: gradeReultsRequest) {
     try {
@@ -182,6 +178,7 @@ export class GradesController {
     }
   }
 
+
   @Public()
   @Post('pre-cache-results')
   async preCacheResults() {
@@ -191,4 +188,5 @@ export class GradesController {
       console.error(error)
     }
   }
+
 }

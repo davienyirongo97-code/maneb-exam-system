@@ -198,6 +198,147 @@ export class GradesService {
     }
   }
 
+    async viewCachedResults(data: gradeReultsRequest): Promise<StudentMarksDto> {
+    const { date_of_birth, student_number } = data;
+
+
+    const cacheKey = `student:${student_number}:${date_of_birth}`;
+
+    try {
+
+      const val = await this.redis.get('debug_key');
+      const cached = await this.redis.get<StudentMarksDto>(cacheKey);
+
+      if (cached) {
+        return cached;
+      }
+      const results = await sql`
+      SELECT * FROM grades
+      WHERE date_of_birth = ${date_of_birth} 
+        AND student_number = ${student_number}
+      LIMIT 1;
+    `;
+
+      if (!results || results.length === 0) {
+        throw new BadRequestException(
+          'No results found for the provided student number and date of birth',
+        );
+      }
+
+      const result = results[0];
+      const response: StudentMarksDto = {
+        first_name: result.first_name,
+        middle_name: result.middle_name,
+        last_name: result.last_name,
+        date_of_birth: result.date_of_birth,
+        student_number: result.student_number,
+        exam_center: result.exam_center,
+        accounting: result.accounting,
+        agriculture: result.agriculture,
+        bible_knowledge: result.bible_knowledge,
+        biology: result.biology,
+        business_studies: result.business_studies,
+        chemistry: result.chemistry,
+        chichewa: result.chichewa,
+        computer_studies: result.computer_studies,
+        english: result.english,
+        geography: result.geography,
+        history: result.history,
+        home_economics: result.home_economics,
+        mathematics: result.mathematics,
+        physics: result.physics,
+        social_studies: result.social_studies,
+        technical_drawing: result.technical_drawing,
+      };
+
+      await this.redis.set(cacheKey, response, 60);
+
+      return response;
+    } catch (error) {
+
+      if (error instanceof BadRequestException) throw error;
+
+      throw new InternalServerErrorException(
+        'Failed to retrieve student results',
+      );
+    }
+  }
+
+async preLoadResultsFromDbToCache() {
+  try {
+    const BATCH_SIZE = 1000;
+    let lastId = 0;
+    let hasMore = true;
+
+    while (hasMore) {
+      const grades = await sql`
+        SELECT *
+        FROM grades
+        WHERE id > ${lastId}
+        ORDER BY id
+        LIMIT ${BATCH_SIZE}
+      `;
+
+      if (grades.length === 0) {
+        hasMore = false;
+        break;
+      }
+
+      await Promise.all(
+        grades.map((grade) => {
+          const normalizedDob =
+            grade.date_of_birth instanceof Date
+              ? grade.date_of_birth.toISOString().split('T')[0]
+              : String(grade.date_of_birth).split('T')[0];
+
+          const cacheKey = `student:${grade.student_number}:${normalizedDob}`;
+
+
+          const preparedGrade: StudentMarksDto = {
+            first_name: grade.first_name,
+            middle_name: grade.middle_name,
+            last_name: grade.last_name,
+            date_of_birth: grade.date_of_birth,
+            student_number: grade.student_number,
+            exam_center: grade.exam_center,
+            accounting: grade.accounting,
+            agriculture: grade.agriculture,
+            bible_knowledge: grade.bible_knowledge,
+            biology: grade.biology,
+            business_studies: grade.business_studies,
+            chemistry: grade.chemistry,
+            chichewa: grade.chichewa,
+            computer_studies: grade.computer_studies,
+            english: grade.english,
+            geography: grade.geography,
+            history: grade.history,
+            home_economics: grade.home_economics,
+            mathematics: grade.mathematics,
+            physics: grade.physics,
+            social_studies: grade.social_studies,
+            technical_drawing: grade.technical_drawing,
+          };
+
+          return this.redis.set(cacheKey, preparedGrade, 86400);
+        })
+      );
+
+      // move cursor forward
+      lastId = grades[grades.length - 1].id;
+    }
+
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+  // clear Redis cache after a new upload
+  async clearCache(student_number: string, date_of_birth: string) {
+    const key = `student:${student_number}:${date_of_birth}`;
+    await this.redis.del(key);
+  }
+
+
 }
 
 

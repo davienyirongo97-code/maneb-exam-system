@@ -11,5 +11,7 @@ export class AppController {
   getHello(){
 
     console.log(`Worker ${process.pid} handled request`);
+
+    return "hello"
   }
 }

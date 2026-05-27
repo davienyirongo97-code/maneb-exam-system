@@ -2,6 +2,8 @@ import  cluster from 'cluster';
 import * as os from 'os';
 import { Injectable } from '@nestjs/common';
 
+import * as client from 'prom-client';
+
 const numCPUs = os.cpus().length;
 
 @Injectable()

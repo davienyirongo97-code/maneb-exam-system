@@ -11,7 +11,7 @@ export class ResultsQueueProcessor {
   
   @Process({
     name: 'process-result',
-    concurrency: 1200,
+    concurrency: 12000,
   })
 
   async handleResult(job: Job) {

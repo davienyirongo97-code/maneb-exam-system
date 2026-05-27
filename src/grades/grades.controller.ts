@@ -57,7 +57,7 @@ export class GradesController {
     try {
       const result = await this.gradesService.viewCachedResults(query);
 
-      console.log(process.pid ,"processing...");
+      console.log("processing pid...",process.pid);
       return {
         success: true,
         message: 'Results retrieved successfully',

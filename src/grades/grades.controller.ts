@@ -52,11 +52,12 @@ export class GradesController {
   }
 
   @Public()
-  @Get('view-cached-results')
+  @Get('view-uncached-results')
   async viewCachedResults(@Query() query: gradeReultsRequest) {
     try {
       const result = await this.gradesService.viewCachedResults(query);
 
+      console.log(process.pid ,"processing...");
       return {
         success: true,
         message: 'Results retrieved successfully',

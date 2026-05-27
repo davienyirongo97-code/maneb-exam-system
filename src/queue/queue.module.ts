@@ -10,12 +10,12 @@ import { GradesModule } from '../grades/grades.module';
         BullModule.registerQueue({
             name: 'results-queue',
             limiter: {
-                max: 10000,        // Max 300 jobs per
+                max: 12000,        // Max 1200 jobs per
 
                 duration: 1000,  // 1 second
             },
             defaultJobOptions: {
-                attempts: 3,           // Retry failed jobs 3 times
+                attempts: 5,           // Retry failed jobs 3 times
                 backoff: {
                     type: 'exponential',
                     delay: 3000,

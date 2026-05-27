@@ -8,11 +8,14 @@ import { gradeReultsRequest } from '../grades/dto/gradeReultsRequest.dto';
 export class ResultsQueueProcessor {
   constructor(private gradesService: GradesService) {}
   
-  @Process('process-result')
+  
+  @Process({
+    name: 'process-result',
+    concurrency: 1200,
+  })
+
   async handleResult(job: Job) {
     const { student_number, date_of_birth } = job.data as gradeReultsRequest;
-    
-    
 
     // Validate required fields
     if (!student_number || !date_of_birth) {

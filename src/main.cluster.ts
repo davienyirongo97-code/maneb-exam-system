@@ -2,9 +2,9 @@ import cluster from 'cluster';
 import * as os from 'os';
 import { Injectable } from '@nestjs/common';
 
-//  const numCPUs = os.cpus().length;
+ const numCPUs = os.cpus().length;
 
- const numCPUs = 1;
+//  const numCPUs = 1;
 @Injectable()
 export class AppClusterService {
     static async clusterize(

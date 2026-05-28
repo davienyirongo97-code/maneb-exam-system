@@ -116,4 +116,10 @@ export class StudentMarksDto {
     @IsString()
     @IsNotEmpty()
     student_number!:string
+
+    
+    
+    @IsString()
+    @IsNotEmpty()
+    school!:string
 }

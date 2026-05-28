@@ -16,9 +16,10 @@ export class GradesService {
       throw new BadRequestException('No data provided');
     }
 
+    console.log("in")
     let successCount = 0;
     let errorCount = 0;
-    const errors: ErrorEntry[] = []; // Explicitly type the array
+    const errors: ErrorEntry[] = [];
 
     try {
       return await sql.begin(async (sql) => {
@@ -47,7 +48,8 @@ export class GradesService {
               technical_drawing,
               date_of_birth,
               exam_center,
-              student_number
+              student_number,
+              school
             } = row;
 
             const requiredFields = {
@@ -57,7 +59,8 @@ export class GradesService {
               english, geography, history, home_economics, mathematics,
               physics, social_studies, technical_drawing,
               exam_center,
-              student_number
+              student_number,
+              school
             };
 
             const missingFields = Object.entries(requiredFields)
@@ -96,17 +99,17 @@ export class GradesService {
                 business_studies, chemistry, chichewa, computer_studies, 
                 english, first_name, geography, history, home_economics, 
                 last_name, mathematics, middle_name, physics, 
-                social_studies, technical_drawing, date_of_birth,exam_center,student_number
+                social_studies, technical_drawing, date_of_birth,exam_center,student_number,school
               ) VALUES (
                 ${accounting}, ${agriculture}, ${bible_knowledge}, ${biology}, 
                 ${business_studies}, ${chemistry}, ${chichewa}, ${computer_studies}, 
                 ${english}, ${first_name}, ${geography}, ${history}, ${home_economics}, 
                 ${last_name}, ${mathematics}, ${middle_name || null}, ${physics}, 
                 ${social_studies}, ${technical_drawing}, ${date_of_birth},${exam_center},
-                 ${student_number}
+                 ${student_number},${school}
               );
             `;
-
+            console.table({id:successCount,student:first_name});
             successCount++;
 
           }
@@ -185,7 +188,8 @@ export class GradesService {
         mathematics: result.mathematics,
         physics: result.physics,
         social_studies: result.social_studies,
-        technical_drawing: result.technical_drawing
+        technical_drawing: result.technical_drawing,
+        school:result.school
       };
     } catch (error) {
       if (error instanceof BadRequestException) {
@@ -251,6 +255,7 @@ export class GradesService {
         physics: result.physics,
         social_studies: result.social_studies,
         technical_drawing: result.technical_drawing,
+        school:result.school
       };
 
       await this.redis.set(cacheKey, response, 60);
@@ -319,6 +324,7 @@ export class GradesService {
               physics: grade.physics,
               social_studies: grade.social_studies,
               technical_drawing: grade.technical_drawing,
+              school:grade.school
             };
 
             return this.redis.set(cacheKey, preparedGrade, 86400);

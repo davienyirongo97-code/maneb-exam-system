@@ -1,6 +1,5 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFile, InternalServerErrorException, Req, BadRequestException, Query, Res } from '@nestjs/common';
+import { Controller, Get, Post, Param, UseInterceptors, UploadedFile, InternalServerErrorException, Req, BadRequestException, Query, Res } from '@nestjs/common';
 import { GradesService } from './grades.service';
-import { CreateGradeDto } from './dto/create-grade.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import * as XLSX from 'xlsx';
 import { StudentMarksDto } from './dto/studentsMarks.dto';
@@ -10,31 +9,95 @@ import { query } from 'winston';
 import { ResultsQueueProducer } from '../queue/queue.producer';
 import express from 'express';
 import 'multer';
+import { memoryStorage } from 'multer';
 
 @Controller('grades')
 export class GradesController {
   constructor(private readonly gradesService: GradesService, private readonly queueProducer: ResultsQueueProducer) { }
   private num: number = 0;
+
+
+  @Post('upload-grades-csv')
+@UseInterceptors(FileInterceptor('grades', {
+  storage: memoryStorage(),
+  limits: { fileSize: 200 * 1024 * 1024 }
+}))
+async uploadExcelCsv(@UploadedFile() file: Express.Multer.File) {
+  try {
+    if (!file) {
+      throw new BadRequestException('No file uploaded');
+    }
+
+    const csvData = file.buffer.toString('utf8');
+    const lines = csvData.split('\n').filter(line => line.trim() !== '');
+    const headers = lines[0].split(',').map(h => h.trim());
+
+    const data: StudentMarksDto[] = lines.slice(1).map(line => {
+      const values = line.split(',');
+      return headers.reduce((obj, key, i) => {
+        obj[key] = values[i]?.trim() ?? '';
+        return obj;
+      }, {} as any);
+    });
+
+    console.log("total rows:", data.length);
+
+    if (!data || data.length === 0) {
+      throw new BadRequestException('No data found in file');
+    }
+
+    const result = await this.gradesService.createGradesFromFile(data);
+
+    return {
+      success: true,
+      message: 'Grades uploaded successfully',
+      data: result
+    };
+  } catch (error) {
+    if (error instanceof BadRequestException) throw error;
+    throw new InternalServerErrorException('Failed to process file');
+  }
+}
+
+
   @Post('upload-grades')
-  @UseInterceptors(FileInterceptor('grades'))
+  @UseInterceptors(FileInterceptor('grades', {
+    storage: memoryStorage()
+  }))
   async uploadExcel(@UploadedFile() file: Express.Multer.File, @Req() req: Request) {
     try {
+
+      console.log("controller")
       if (!file) {
         throw new BadRequestException('No file uploaded');
       }
       const workbook = XLSX.read(file.buffer, {
         type: 'buffer',
         cellDates: true,
-        dateNF: 'yyyy-mm-dd'
+        dateNF: 'yyyy-mm-dd',
+        raw: false,
+        sheets:0
       });
       const sheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[sheetName];
 
+      console.log("worksheet:", worksheet); // add this
+      if (!worksheet) {
+        throw new BadRequestException('Worksheet is undefined');
+      }
+      console.log("file size:", file.size);
+      console.log("sheet names:", workbook.SheetNames);
+      console.log("worksheet keys:", Object.keys(worksheet).slice(0, 10));
+
       const data: StudentMarksDto[] = XLSX.utils.sheet_to_json(worksheet);
 
+      console.log(sheetName, worksheet, data.length);
       if (!data || data.length === 0) {
+        console.log("no data")
         throw new BadRequestException('No data found in Excel file');
       }
+
+      console.log("controller2")
 
       const result = await this.gradesService.createGradesFromFile(data);
 
@@ -129,8 +192,8 @@ export class GradesController {
     // console.log(`Worker ${process.pid} handled request`);
     const job = await this.queueProducer.getJob(jobId);
 
-      console.log(this.num);
-      this.num = this.num + 1;
+    console.log(this.num);
+    this.num = this.num + 1;
     if (!job) {
       return {
         success: false,

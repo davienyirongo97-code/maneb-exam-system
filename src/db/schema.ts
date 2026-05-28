@@ -36,7 +36,8 @@ export async function createTables() {
     computer_studies VARCHAR(3),
     home_economics VARCHAR(3),
     technical_drawing VARCHAR(3),
-    exam_center VARCHAR(100)
+    exam_center VARCHAR(100),
+    school VARCHAR (50)
   );
   `;
 }

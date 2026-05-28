@@ -86,7 +86,6 @@ export class GradesController {
     @Res() res: express.Response,
   ) {
     try {
-      console.log(process.pid)
 
       const { jobId, queued, position } = await this.queueProducer.addToQueue(
         query.student_number,
@@ -130,6 +129,8 @@ export class GradesController {
     // console.log(`Worker ${process.pid} handled request`);
     const job = await this.queueProducer.getJob(jobId);
 
+      console.log(this.num);
+      this.num = this.num + 1;
     if (!job) {
       return {
         success: false,

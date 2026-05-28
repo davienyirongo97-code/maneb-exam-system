@@ -86,8 +86,8 @@ export class GradesController {
     @Res() res: express.Response,
   ) {
     try {
-      // console.log(this.num);
-      // this.num = this.num + 1;
+      console.log(this.num);
+      this.num = this.num + 1;
 
       const { jobId, queued, position } = await this.queueProducer.addToQueue(
         query.student_number,

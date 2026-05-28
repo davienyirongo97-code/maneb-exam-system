@@ -18,10 +18,10 @@ import { QueueModule } from './queue/queue.module';
     UserModule,
     GradesModule,
     PrometheusModule.register({
-      path: "",
+      path: "/metrics",
       defaultMetrics: {
         enabled: true,
-        // config: {}
+        config: {}
       },
     }),
     BullModule.forRoot({

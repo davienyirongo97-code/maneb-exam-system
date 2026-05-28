@@ -1,20 +1,22 @@
-import  cluster from 'cluster';
+import cluster from 'cluster';
 import * as os from 'os';
 import { Injectable } from '@nestjs/common';
 
-import * as client from 'prom-client';
-
-const numCPUs = os.cpus().length;
+ const numCPUs = os.cpus().length;
 
 @Injectable()
 export class AppClusterService {
-    static clusterize(callback: Function): void {
-        if(cluster.isPrimary){
+    static async clusterize(
+        callback: () => Promise<void>,
+    ): Promise<void> {
+        if (cluster.isPrimary) {
             console.log(`Master server started on ${process.pid}`);
             console.log('CPUs:', os.cpus().length);
+
             for (let i = 0; i < numCPUs; i++) {
-                cluster.fork();
+                const worker = cluster.fork();
             }
+
             cluster.on('exit', (worker, code, signal) => {
                 console.log(`Worker ${worker.process.pid} died. Restarting`);
                 cluster.fork();

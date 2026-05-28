@@ -123,7 +123,7 @@ export class GradesController {
   @Get('queue/status/:jobId')
   async getJobStatus(@Param('jobId') jobId: string) {
 
-    // console.log(`Worker ${process.pid} handled request`);
+    console.log(`Worker ${process.pid} handled request`);
     const job = await this.queueProducer.getJob(jobId);
 
     if (!job) {

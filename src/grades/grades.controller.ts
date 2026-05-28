@@ -14,7 +14,7 @@ import 'multer';
 @Controller('grades')
 export class GradesController {
   constructor(private readonly gradesService: GradesService, private readonly queueProducer: ResultsQueueProducer) { }
-
+  private num: number = 0;
   @Post('upload-grades')
   @UseInterceptors(FileInterceptor('grades'))
   async uploadExcel(@UploadedFile() file: Express.Multer.File, @Req() req: Request) {
@@ -52,12 +52,14 @@ export class GradesController {
   }
 
   @Public()
-  @Get('view-uncached-results')
+  @Get('view-cached-results')
   async viewCachedResults(@Query() query: gradeReultsRequest) {
     try {
       const result = await this.gradesService.viewCachedResults(query);
 
-      console.log("processing pid...",process.pid);
+
+      console.log("iteration...", this.num);
+      this.num = this.num + 1;
       return {
         success: true,
         message: 'Results retrieved successfully',
@@ -84,12 +86,15 @@ export class GradesController {
     @Res() res: express.Response,
   ) {
     try {
+      // console.log(this.num);
+      // this.num = this.num + 1;
+
       const { jobId, queued, position } = await this.queueProducer.addToQueue(
         query.student_number,
         query.date_of_birth,
       );
+      // console.log(process.pid);
 
-      console.log(process.pid);
       res.status(202).json({
         success: true,
         message: 'Request queued for processing',
@@ -123,7 +128,7 @@ export class GradesController {
   @Get('queue/status/:jobId')
   async getJobStatus(@Param('jobId') jobId: string) {
 
-    console.log(`Worker ${process.pid} handled request`);
+    // console.log(`Worker ${process.pid} handled request`);
     const job = await this.queueProducer.getJob(jobId);
 
     if (!job) {
@@ -153,7 +158,7 @@ export class GradesController {
     };
   }
 
-@Public()
+  @Public()
   @Get('view-uncached-results-direct')
   async viewUncachedResultsDirect(@Query() query: gradeReultsRequest) {
     try {

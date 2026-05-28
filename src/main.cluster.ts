@@ -4,6 +4,7 @@ import { Injectable } from '@nestjs/common';
 
  const numCPUs = os.cpus().length;
 
+//  const numCPUs = 1;
 @Injectable()
 export class AppClusterService {
     static async clusterize(

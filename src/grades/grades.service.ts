@@ -204,7 +204,6 @@ export class GradesService {
 
     const { date_of_birth, student_number } = data;
 
-
     const cacheKey = `student:${student_number}:${date_of_birth}`;
 
     try {

@@ -10,7 +10,7 @@ import { GradesModule } from '../grades/grades.module';
         BullModule.registerQueue({
             name: 'results-queue',
             limiter: {
-                max: 12000,        // Max 1200 jobs per
+                max: 20000,        // Max 1200 jobs per
 
                 duration: 1000,  // 1 second
             },

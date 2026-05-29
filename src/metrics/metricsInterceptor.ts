@@ -16,7 +16,6 @@ export class MetricsInterceptor implements NestInterceptor {
     '/health',
     '/authentication/login',
     '/user/register',
-    '/grades/queue/status/:jobId'
   ];
 
   constructor(

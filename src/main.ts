@@ -28,7 +28,7 @@ async function bootstrap() {
     }),
   );
 
-  await app.listen(3000, '0.0.0.0');
+  await app.listen(3005, '0.0.0.0');
 }
 
 AppClusterService.clusterize(bootstrap);

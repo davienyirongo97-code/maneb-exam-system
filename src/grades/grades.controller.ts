@@ -14,8 +14,6 @@ import { memoryStorage } from 'multer';
 @Controller('grades')
 export class GradesController {
   constructor(private readonly gradesService: GradesService, private readonly queueProducer: ResultsQueueProducer) { }
-  private num: number = 0;
-
 
   @Post('upload-grades-csv')
 @UseInterceptors(FileInterceptor('grades', {
@@ -109,8 +107,6 @@ async uploadExcelCsv(@UploadedFile() file: Express.Multer.File) {
     try {
       const result = await this.gradesService.viewCachedResults(query);
 
-
-      this.num = this.num + 1;
       return {
         success: true,
         message: 'Results retrieved successfully',
@@ -176,7 +172,6 @@ async uploadExcelCsv(@UploadedFile() file: Express.Multer.File) {
 
     const job = await this.queueProducer.getJob(jobId);
 
-    this.num = this.num + 1;
     if (!job) {
       return {
         success: false,

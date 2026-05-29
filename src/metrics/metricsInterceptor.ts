@@ -12,8 +12,8 @@ import { Reflector } from '@nestjs/core';
 @Injectable()
 export class MetricsInterceptor implements NestInterceptor {
   private readonly excludedPaths = [
-    '/metrics',
-    '/health',
+    // '/metrics',
+    // '/health',
     '/authentication/login',
     '/user/register',
     '/grades/queue/status/:jobId'

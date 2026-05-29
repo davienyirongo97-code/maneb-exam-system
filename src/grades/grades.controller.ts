@@ -67,7 +67,6 @@ async uploadExcelCsv(@UploadedFile() file: Express.Multer.File) {
   async uploadExcel(@UploadedFile() file: Express.Multer.File, @Req() req: Request) {
     try {
 
-      console.log("controller")
       if (!file) {
         throw new BadRequestException('No file uploaded');
       }
@@ -81,23 +80,13 @@ async uploadExcelCsv(@UploadedFile() file: Express.Multer.File) {
       const sheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[sheetName];
 
-      console.log("worksheet:", worksheet); // add this
-      if (!worksheet) {
-        throw new BadRequestException('Worksheet is undefined');
-      }
-      console.log("file size:", file.size);
-      console.log("sheet names:", workbook.SheetNames);
-      console.log("worksheet keys:", Object.keys(worksheet).slice(0, 10));
 
       const data: StudentMarksDto[] = XLSX.utils.sheet_to_json(worksheet);
 
-      console.log(sheetName, worksheet, data.length);
       if (!data || data.length === 0) {
-        console.log("no data")
         throw new BadRequestException('No data found in Excel file');
       }
 
-      console.log("controller2")
 
       const result = await this.gradesService.createGradesFromFile(data);
 
@@ -121,7 +110,6 @@ async uploadExcelCsv(@UploadedFile() file: Express.Multer.File) {
       const result = await this.gradesService.viewCachedResults(query);
 
 
-      console.log("iteration...", this.num);
       this.num = this.num + 1;
       return {
         success: true,
@@ -129,7 +117,6 @@ async uploadExcelCsv(@UploadedFile() file: Express.Multer.File) {
         data: result
       };
     } catch (error) {
-      console.error('View results error:', error);
 
       if (error instanceof BadRequestException) {
         throw error;
@@ -154,7 +141,6 @@ async uploadExcelCsv(@UploadedFile() file: Express.Multer.File) {
         query.student_number,
         query.date_of_birth,
       );
-      // console.log(process.pid);
 
       res.status(202).json({
         success: true,
@@ -176,7 +162,6 @@ async uploadExcelCsv(@UploadedFile() file: Express.Multer.File) {
           queueFull: true,
         });
       } else {
-        console.error('Queue error:', error);
         res.status(500).json({
           success: false,
           message: 'Failed to queue request',
@@ -189,10 +174,8 @@ async uploadExcelCsv(@UploadedFile() file: Express.Multer.File) {
   @Get('queue/status/:jobId')
   async getJobStatus(@Param('jobId') jobId: string) {
 
-    // console.log(`Worker ${process.pid} handled request`);
     const job = await this.queueProducer.getJob(jobId);
 
-    console.log(this.num);
     this.num = this.num + 1;
     if (!job) {
       return {

@@ -11,12 +11,12 @@ import { Reflector } from '@nestjs/core';
 
 @Injectable()
 export class MetricsInterceptor implements NestInterceptor {
-  private readonly excludedPatterns = [
-    /^\/metrics$/,
-    /^\/health$/,
-    /^\/authentication\/login$/,
-    /^\/user\/register$/,
-    /^\/grades\/queue\/status\/.*$/,
+  private readonly excludedPaths = [
+    '/metrics',
+    '/health',
+    '/authentication/login',
+    '/user/register',
+    '/grades/queue/status/:jobId'
   ];
 
   constructor(
@@ -58,7 +58,7 @@ export class MetricsInterceptor implements NestInterceptor {
     path = this.normalizePath(path);
 
     // Check excluded paths after normalization
-    if (this.excludedPatterns.some((pattern) => pattern.test(path))) {
+    if (this.excludedPaths.some((p) => path.includes(p))) {
       return next.handle();
     }
 
